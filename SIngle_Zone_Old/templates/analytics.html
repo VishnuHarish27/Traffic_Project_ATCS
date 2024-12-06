@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Analytics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+
+
+        .chart-container {
+            width: 100%; /* Set a percentage width for responsiveness */
+            max-width: 1000px; /* Maximum width */
+            display: flex;
+            justify-content: center; /* Center the chart */
+            align-items: center;
+            height: 400px; /* Set a fixed height for the container */
+        }
+
+
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>Real-time Traffic Processing</h1>
+            <nav>
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('analytics') }}">Analytics</a>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <h2>Traffic Analytics</h2>
+        <div class="charts-row">
+            <div class="chart-container">
+                <canvas id="vehicleCountChart"></canvas>
+            </div>
+        </div>
+        <div class="data-table">
+            <h3>Traffic Data</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Vehicle Count</th>
+                        <th>Density</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                        <td>{{ row[2] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+    <footer>
+        <p>© 2024 Real-time Traffic Processing. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const data = {{ data|tojson }};
+        const timestamps = data.map(row => row[0]);
+        const vehicleCounts = data.map(row => row[1]);
+
+        const ctx = document.getElementById('vehicleCountChart').getContext('2d');
+        const vehicleCountChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: timestamps,
+                datasets: [{
+                    label: 'Vehicle Count',
+                    data: vehicleCounts,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

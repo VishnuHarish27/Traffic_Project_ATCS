@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Traffic Processing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>Real-time Traffic Processing</h1>
+            <nav>
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('analytics') }}">Analytics</a>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <p>Processing video from RTSP URL</p>
+        <div id="video-container">
+            <img id="video-feed" src="{{ url_for('video_feed') }}" alt="Real-time Video Feed">
+        </div>
+    </main>
+    <footer>
+        <p>© 2024 Real-time Traffic Processing. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Automatically reload the video feed every few seconds to keep it updated
+        document.addEventListener("DOMContentLoaded", function() {
+            const videoFeed = document.getElementById('video-feed');
+            setInterval(() => {
+                const timestamp = new Date().getTime();
+                videoFeed.src = "{{ url_for('video_feed') }}" + "?t=" + timestamp;
+            }, 1000); // Refresh every second
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Analytics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .charts-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .chart-container {
+            width: 45%;
+            min-width: 300px;
+            margin: 10px;
+            height: 400px;
+        }
+        .data-table {
+            margin: 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .header-container {
+            background-color: #333;
+            padding: 1rem;
+            color: white;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        nav a:hover {
+            background-color: #555;
+        }
+        .summary-cards {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .summary-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin: 10px;
+            min-width: 200px;
+            text-align: center;
+        }
+        .card-title {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        .card-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .pagination a {
+            margin: 0 5px;
+            padding: 5px 10px;
+            text-decoration: none;
+            border: 1px solid #ddd;
+            color: #333;
+            border-radius: 3px;
+        }
+        .pagination a:hover {
+            background-color: #f5f5f5;
+        }
+        .pagination .active {
+            background-color: #333;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>Real-time Traffic Processing</h1>
+            <nav>
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('analytics') }}">Analytics</a>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <h2>Traffic Analytics</h2>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="card-title">Region 1 Vehicle Count</div>
+                <div class="card-value" id="r1Count">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title">Region 1 Density</div>
+                <div class="card-value" id="r1Density">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title">Region 2 Vehicle Count</div>
+                <div class="card-value" id="r2Count">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title">Region 2 Density</div>
+                <div class="card-value" id="r2Density">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title">Weighted Vehicle Count</div>
+                <div class="card-value" id="weightedCount">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title">Weighted Density</div>
+                <div class="card-value" id="weightedDensity">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title">VDC1 Status</div>
+                <div class="card-value" id="vdc1Status">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title">Processing Time</div>
+                <div class="card-value" id="processingTime">-</div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="data-table">
+            <h3>Traffic Data</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>R1 Vehicle Count</th>
+                        <th>R1 Density (%)</th>
+                        <th>R2 Vehicle Count</th>
+                        <th>R2 Density (%)</th>
+                        <th>Weighted Count</th>
+                        <th>Weighted Density (%)</th>
+                        <th>VDC1</th>
+                        <th>Processing Time (s)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                        <td>{{ "%.1f"|format(row[2]) }}</td>
+                        <td>{{ row[3] }}</td>
+                        <td>{{ "%.1f"|format(row[4]) }}</td>
+                        <td>{{ "%.1f"|format(row[5]) }}</td>
+                        <td>{{ "%.1f"|format(row[6]) }}</td>
+                        <td>{{ row[7] }}</td>
+                        <td>{{ "%.3f"|format(row[8]) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Simplified Pagination -->
+            <div class="pagination">
+                {% if page > 1 %}
+                    <a href="{{ url_for('analytics', page=page-1) }}">&laquo; Previous</a>
+                {% endif %}
+
+                {% if page > 3 %}
+                    <a href="{{ url_for('analytics', page=1) }}">1</a>
+                    {% if page > 4 %}
+                        <span>...</span>
+                    {% endif %}
+                {% endif %}
+
+                {% for p in range(page-2, page+3) %}
+                    {% if p > 0 and p <= total_pages %}
+                        <a href="{{ url_for('analytics', page=p) }}"
+                           {% if p == page %}class="active"{% endif %}>
+                            {{ p }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page < total_pages-2 %}
+                    {% if page < total_pages-3 %}
+                        <span>...</span>
+                    {% endif %}
+                    <a href="{{ url_for('analytics', page=total_pages) }}">{{ total_pages }}</a>
+                {% endif %}
+
+                {% if page < total_pages %}
+                    <a href="{{ url_for('analytics', page=page+1) }}">Next &raquo;</a>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+    <footer>
+        <p>© 2024 Real-time Traffic Processing. All rights reserved.</p>
+    </footer>
+
+<script>
+    const data = {{ data|tojson }};
+
+    // Get the last frame data (most recent record)
+    const lastFrame = data[0];  // First row is the most recent due to DESC order
+
+    // Update summary cards with the most recent data
+    document.getElementById('r1Count').textContent = lastFrame[1];
+    document.getElementById('r1Density').textContent = lastFrame[2].toFixed(1) + '%';
+    document.getElementById('r2Count').textContent = lastFrame[3];
+    document.getElementById('r2Density').textContent = lastFrame[4].toFixed(1) + '%';
+    document.getElementById('weightedCount').textContent = lastFrame[5].toFixed(1);
+    document.getElementById('weightedDensity').textContent = lastFrame[6].toFixed(1) + '%';
+    document.getElementById('vdc1Status').textContent =
+        lastFrame[7] === 1 ? 'High Density' : 'Low Density';
+    document.getElementById('processingTime').textContent =
+        lastFrame[8].toFixed(3) + ' s';
+</script>
+
+</body>
+</html>

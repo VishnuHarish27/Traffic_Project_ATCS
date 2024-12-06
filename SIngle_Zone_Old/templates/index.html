@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Traffic Processing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>Real-time Traffic Processing</h1>
+            <nav>
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('analytics') }}">Analytics</a>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <div class="upload-section">
+            <form method="POST" action="/upload" enctype="multipart/form-data">
+                <input type="file" name="file" accept="video/*" required>
+                <input type="submit" value="Upload">
+            </form>
+        </div>
+
+        {% if filename %}
+        <div class="video-container">
+            <img src="{{ url_for('video_feed', filename=filename) }}" alt="Video Stream">
+        </div>
+        {% endif %}
+    </main>
+    <footer>
+        <p>© 2024 Real-time Traffic Processing. All rights reserved.</p>
+    </footer>
+</body>
+</html>

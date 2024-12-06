@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Analytics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .charts-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .chart-container {
+            width: 45%;
+            min-width: 300px;
+            margin: 10px;
+            height: 400px;
+        }
+        .data-table {
+            margin: 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .header-container {
+            background-color: #333;
+            padding: 1rem;
+            color: white;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        nav a:hover {
+            background-color: #555;
+        }
+        .summary-cards {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .summary-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin: 10px;
+            min-width: 200px;
+            text-align: center;
+        }
+        .card-title {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        .card-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>Real-time Traffic Processing</h1>
+            <nav>
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('analytics') }}">Analytics</a>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <h2>Traffic Analytics</h2>
+
+<!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="card-title">Average Weighted Vehicle Count</div>
+                <div class="card-value" id="avgWeightedCount">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title">Average Weighted Density</div>
+                <div class="card-value" id="avgWeightedDensity">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title">Peak Vehicle Count</div>
+                <div class="card-value" id="peakCount">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title">Peak Density</div>
+                <div class="card-value" id="peakDensity">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title">VDC1 Status</div>
+                <div class="card-value" id="vdc1Status">-</div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="data-table">
+            <h3>Traffic Data</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Vehicle Count</th>
+                        <th>Density (%)</th>
+                        <th>VDC1</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                        <td>{{ "%.1f"|format(row[2]) }}</td>
+                        <td>{{ row[3] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+    <footer>
+        <p>© 2024 Real-time Traffic Processing. All rights reserved.</p>
+    </footer>
+
+<script>
+    const data = {{ data|tojson }};
+
+    // Extract data for summary cards
+    const vehicleCounts = data.map(row => row[1]);
+    const densityPercentages = data.map(row => row[2]);
+    const vdc1Values = data.map(row => row[3]);
+
+    // Get the last frame data
+    const lastFrameIndex = data.length - 1;
+    const lastVehicleCount = vehicleCounts[lastFrameIndex];
+    const lastDensityPercentage = densityPercentages[lastFrameIndex];
+
+    // Update summary cards with the last frame data
+    document.getElementById('avgWeightedCount').textContent =
+        lastVehicleCount.toFixed(1);  // Vehicle count of last frame
+    document.getElementById('avgWeightedDensity').textContent =
+        lastDensityPercentage.toFixed(1) + '%';  // Density of last frame
+    document.getElementById('peakCount').textContent =
+        Math.max(...vehicleCounts).toFixed(1);  // Peak vehicle count
+    document.getElementById('peakDensity').textContent =
+        Math.max(...densityPercentages).toFixed(1) + '%';  // Peak density
+    document.getElementById('vdc1Status').textContent =
+        vdc1Values[lastFrameIndex] === 1 ? 'High Density' : 'Low Density';  // VDC1 status for last frame
+</script>
+
+</body>
+</html>

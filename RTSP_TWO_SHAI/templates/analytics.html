@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Analytics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .charts-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .chart-container {
+            width: 45%;
+            min-width: 300px;
+            margin: 10px;
+            height: 400px;
+        }
+        .data-table {
+            margin: 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .header-container {
+            background-color: #333;
+            padding: 1rem;
+            color: white;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        nav a:hover {
+            background-color: #555;
+        }
+        .summary-cards {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .summary-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin: 10px;
+            min-width: 200px;
+            text-align: center;
+        }
+        .card-title {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        .card-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>Real-time Traffic Processing</h1>
+            <nav>
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('analytics') }}">Analytics</a>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <h2>Traffic Analytics</h2>
+
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="card-title">Average Weighted Vehicle Count</div>
+                <div class="card-value" id="avgWeightedCount">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title">Average Weighted Density</div>
+                <div class="card-value" id="avgWeightedDensity">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title">Peak Vehicle Count</div>
+                <div class="card-value" id="peakCount">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title">Peak Density</div>
+                <div class="card-value" id="peakDensity">-</div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-container">
+                <canvas id="vehicleCountChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="densityChart"></canvas>
+            </div>
+        </div>
+
+        <div class="data-table">
+            <h3>Traffic Data</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>R1 Vehicles</th>
+                        <th>R1 Density</th>
+                        <th>R2 Vehicles</th>
+                        <th>R2 Density</th>
+                        <th>Weighted Vehicles</th>
+                        <th>Weighted Density</th>
+                        <th>VDC1</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                        <td>{{ "%.1f"|format(row[2]) }}%</td>
+                        <td>{{ row[3] }}</td>
+                        <td>{{ "%.1f"|format(row[4]) }}%</td>
+                        <td>{{ "%.1f"|format(row[5]) }}</td>
+                        <td>{{ "%.1f"|format(row[6]) }}%</td>
+                        <td>{{ row[7] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+    <footer>
+        <p>© 2024 Real-time Traffic Processing. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const data = {{ data|tojson }};
+
+        // Extract data for charts
+        const timestamps = data.map(row => row[0]);
+        const r1Vehicles = data.map(row => row[1]);
+        const r2Vehicles = data.map(row => row[3]);
+        const weightedVehicles = data.map(row => row[5]);
+
+        const r1Density = data.map(row => row[2]);
+        const r2Density = data.map(row => row[4]);
+        const weightedDensity = data.map(row => row[6]);
+
+        // Update summary cards
+        document.getElementById('avgWeightedCount').textContent =
+            (weightedVehicles.reduce((a, b) => a + b, 0) / weightedVehicles.length).toFixed(1);
+        document.getElementById('avgWeightedDensity').textContent =
+            (weightedDensity.reduce((a, b) => a + b, 0) / weightedDensity.length).toFixed(1) + '%';
+        document.getElementById('peakCount').textContent =
+            Math.max(...weightedVehicles).toFixed(1);
+        document.getElementById('peakDensity').textContent =
+            Math.max(...weightedDensity).toFixed(1) + '%';
+
+        // Vehicle Count Chart
+        const vehicleCtx = document.getElementById('vehicleCountChart').getContext('2d');
+        new Chart(vehicleCtx, {
+            type: 'line',
+            data: {
+                labels: timestamps,
+                datasets: [
+                    {
+                        label: 'R1 Vehicles',
+                        data: r1Vehicles,
+                        borderColor: 'rgba(0, 255, 0, 1)',
+                        backgroundColor: 'rgba(0, 255, 0, 0.1)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'R2 Vehicles',
+                        data: r2Vehicles,
+                        borderColor: 'rgba(255, 0, 0, 1)',
+                        backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Weighted Total',
+                        data: weightedVehicles,
+                        borderColor: 'rgba(128, 128, 128, 1)',
+                        backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                        borderWidth: 3,
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Vehicle Count Over Time'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Vehicles'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Density Chart
+        const densityCtx = document.getElementById('densityChart').getContext('2d');
+        new Chart(densityCtx, {
+            type: 'line',
+            data: {
+                labels: timestamps,
+                datasets: [
+                    {
+                        label: 'R1 Density',
+                        data: r1Density,
+                        borderColor: 'rgba(0, 255, 0, 1)',
+                        backgroundColor: 'rgba(0, 255, 0, 0.1)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'R2 Density',
+                        data: r2Density,
+                        borderColor: 'rgba(255, 0, 0, 1)',
+                        backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Weighted Density',
+                        data: weightedDensity,
+                        borderColor: 'rgba(128, 128, 128, 1)',
+                        backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                        borderWidth: 3,
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Density Over Time'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Density (%)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
