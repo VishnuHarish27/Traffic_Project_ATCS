@@ -30,9 +30,9 @@ PROCESS_DURATION = 2  # Process each stream for 2 seconds
 
 # RTSP URLs for each camera
 RTSP_URLS = {
-    'cam1': "http://takemotopiano.aa1.netvolante.jp:8190/nphMotionJpeg?Resolution=640x480&Quality=Standard&Framerate=30",
-    'cam2': "http://195.196.36.242/mjpg/video.mjpg",
-    'cam3': "http://195.196.36.242/mjpg/video.mjpg",
+    'cam1': "http://109.236.111.203/mjpg/video.mjpg",
+    'cam2': "http://109.236.111.203/mjpg/video.mjpg",
+    'cam3': "http://109.236.111.203/mjpg/video.mjpg",
     'cam4': "http://camera.buffalotrace.com/mjpg/video.mjpg"
 }
 

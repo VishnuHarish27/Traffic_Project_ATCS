@@ -3,3 +3,5 @@
 /__pycache__
 *.onnx
 *.pt
+/RTSP_C4_S_USP/static/processed
+RTSP_C4_S_USP/traffic_multi.db
